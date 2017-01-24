@@ -583,6 +583,8 @@ Queue.prototype._onJobKeyExpiry = function (jobExpiryKey) {
   //generate lock key for specific job
   var jobLockKey = this._getJobLockKey(this._getJobUUID(jobExpiryKey));
 
+  this.emit('debug', `expired key ${jobExpiryKey} lock key is ${jobLockKey}`);
+
   //obtain lock to ensure only one worker process expiry event
   //TODO add specs to test for lock lifetime
   this._redlock.lock(jobLockKey, 1000, function (err, lock) {
@@ -595,6 +597,8 @@ Queue.prototype._onJobKeyExpiry = function (jobExpiryKey) {
 
     //continue to process event
     else {
+
+      this.emit('debug', `Successfully got lock on lock key ${jobLockKey}`);
 
       async.waterfall(
         [
@@ -650,6 +654,10 @@ Queue.prototype._onJobKeyExpiry = function (jobExpiryKey) {
           },
 
           function ensureSingleUniqueJob(job, next) {
+            this.emit('debug', {
+              message: 'ensuring unique job',
+              job: job
+            });
             ensureUniqueJob(job, next);
           }
         ],
@@ -695,6 +703,8 @@ Queue.prototype._subscribe = function () {
         this.emit('scheduler unknown job expiry key', jobExpiryKey);
         return;
       }
+
+      this.emit('debug', `expired key ${jobExpiryKey} is a job expiry key`);
 
       this._onJobKeyExpiry(jobExpiryKey);
 
