@@ -659,7 +659,7 @@ Queue.prototype._onJobKeyExpiry = function (jobExpiryKey) {
               job: job
             });
             ensureUniqueJob(job, next);
-          }
+          }.bind(this)
         ],
         function (error, job) {
           lock.unlock(function (err) {
